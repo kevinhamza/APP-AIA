@@ -1,0 +1,520 @@
+<components>
+  <component type="Screen" name="HomeScreen">
+    <property name="Title" value="Welcome to AIA"/>
+    <component type="Label" name="welcomeLabel">
+      <property name="Text" value="Welcome to AIA App"/>
+    </component>
+    <component type="Button" name="startButton">
+      <property name="Text" value="Start"/>
+      <event name="Click" handler="onStartButtonClick"/>
+    </component>
+  </component>
+
+  <component type="Screen" name="SettingsScreen">
+    <property name="Title" value="Settings"/>
+    <component type="Button" name="themeButton">
+      <property name="Text" value="Change Theme"/>
+      <event name="Click" handler="onThemeButtonClick"/>
+    </component>
+    <component type="Switch" name="soundSwitch">
+      <property name="Label" value="Sound Effects"/>
+      <property name="Checked" value="true"/>
+    </component>
+  </component>
+
+  <component type="Screen" name="HelpScreen">
+    <property name="Title" value="Help"/>
+    <component type="Label" name="helpText">
+      <property name="Text" value="How to use the AIA app"/>
+    </component>
+    <component type="Button" name="backButton">
+      <property name="Text" value="Back to Home"/>
+      <event name="Click" handler="onBackButtonClick"/>
+    </component>
+  </component>
+</components>
+
+<components>
+  <component type="Service" name="APIService">
+    <property name="BaseURL" value="https://api.example.com"/>
+    <method name="getData" returnType="JSON">
+      <parameter name="endpoint" value=""/>
+
+      <logic>
+        <call name="HTTPRequest" method="GET" url="{BaseURL}/{endpoint}">
+          <callback name="onDataReceived"/>
+        </call>
+      </logic>
+    </method>
+    <event name="onDataReceived" handler="onDataReceived"/>
+  </component>
+
+  <component type="Logic" name="AppLogic">
+    <event name="onStartButtonClick">
+      <logic>
+        <call name="navigateTo" method="HomeScreen"/>
+      </logic>
+    </event>
+
+    <event name="onBackButtonClick">
+      <logic>
+        <call name="navigateTo" method="HomeScreen"/>
+      </logic>
+    </event>
+
+    <event name="onThemeButtonClick">
+      <logic>
+        <call name="changeTheme" method="Dark"/>
+      </logic>
+    </event>
+  </component>
+</components>
+
+<components>
+  <component type="Utils" name="ThemeUtils">
+    <method name="changeTheme" parameterType="String">
+      <logic>
+        <if condition="parameter == 'Dark'">
+          <call name="setDarkTheme"/>
+        </if>
+        <else>
+          <call name="setLightTheme"/>
+        </else>
+      </logic>
+    </method>
+  </component>
+</components>
+<components>
+  <component type="Service" name="VoiceService">
+    <property name="VoiceEnabled" value="true"/>
+    <method name="speak" parameterType="String">
+      <logic>
+        <if condition="VoiceEnabled == true">
+          <call name="speakOut" method="textToSpeech"/>
+        </if>
+      </logic>
+    </method>
+
+    <method name="textToSpeech" parameterType="String">
+      <logic>
+        <call name="playSound" method="textToSpeechService"/>
+      </logic>
+    </method>
+  </component>
+
+  <component type="Service" name="TextRecognitionService">
+    <method name="extractText" parameterType="Image">
+      <logic>
+        <call name="extractOCRText" method="ocrProcess"/>
+      </logic>
+    </method>
+
+    <method name="ocrProcess" parameterType="Image">
+      <logic>
+        <call name="OCRFunction" method="runOCR"/>
+      </logic>
+    </method>
+  </component>
+</components>
+
+<components>
+  <component type="Screen" name="OCRScreen">
+    <property name="Title" value="OCR Screen"/>
+    <component type="Button" name="startOCRButton">
+      <property name="Text" value="Start OCR"/>
+      <event name="Click" handler="onStartOCRButtonClick"/>
+    </component>
+
+    <component type="Image" name="ocrResultImage"/>
+    <component type="Label" name="ocrResultLabel">
+      <property name="Text" value="Result of OCR will be displayed here"/>
+    </component>
+  </component>
+</components>
+
+<components>
+  <component type="Logic" name="OCRLogic">
+    <event name="onStartOCRButtonClick">
+      <logic>
+        <call name="captureImageForOCR"/>
+      </logic>
+    </event>
+
+    <method name="captureImageForOCR">
+      <logic>
+        <call name="captureScreen" method="captureScreenWithCursor"/>
+        <call name="processOCRImage" method="processCapturedImage"/>
+      </logic>
+    </method>
+
+    <method name="processCapturedImage">
+      <logic>
+        <call name="extractText" method="TextRecognitionService.extractText"/>
+      </logic>
+    </method>
+  </component>
+</components>
+
+<components>
+  <component type="Utils" name="OCRUtils">
+    <method name="captureScreenWithCursor">
+      <logic>
+        <call name="capture_screen_with_cursor" method="captureScreenWithCursor"/>
+      </logic>
+    </method>
+  </component>
+</components>
+<components>
+  <component type="Service" name="CaptureService">
+    <method name="captureScreen" parameterType="None">
+      <logic>
+        <call name="capture_screen_with_cursor" method="captureScreenWithCursor"/>
+      </logic>
+    </method>
+
+    <method name="processCapturedImage" parameterType="Image">
+      <logic>
+        <call name="extractText" method="TextRecognitionService.extractText"/>
+      </logic>
+    </method>
+  </component>
+</components>
+
+<components>
+  <component type="Logic" name="CaptureLogic">
+    <event name="onCaptureScreenButtonClick">
+      <logic>
+        <call name="captureImage"/>
+      </logic>
+    </event>
+
+    <method name="captureImage">
+      <logic>
+        <call name="captureScreen" method="CaptureService.captureScreen"/>
+      </logic>
+    </method>
+  </component>
+</components>
+
+<components>
+  <component type="Screen" name="CaptureScreenUI">
+    <property name="Title" value="Capture Screen"/>
+    <component type="Button" name="captureButton">
+      <property name="Text" value="Capture Screen"/>
+      <event name="Click" handler="onCaptureScreenButtonClick"/>
+    </component>
+
+    <component type="Label" name="captureResultLabel">
+      <property name="Text" value="Captured image will be processed here"/>
+    </component>
+  </component>
+</components>
+<components>
+  <component type="Service" name="TextRecognitionService">
+    <method name="extractText" parameterType="Image">
+      <logic>
+        <call name="processImage" method="OCRService.processImage"/>
+      </logic>
+    </method>
+  </component>
+</components>
+
+<components>
+  <component type="Logic" name="CaptureAndProcessLogic">
+    <event name="onImageCaptured">
+      <logic>
+        <call name="processCapturedImage"/>
+      </logic>
+    </event>
+
+    <method name="processCapturedImage">
+      <logic>
+        <call name="extractText" method="TextRecognitionService.extractText"/>
+      </logic>
+    </method>
+  </component>
+</components>
+<components>
+  <component type="UI" name="MainScreen">
+    <layout>
+      <row>
+        <column>
+          <text>Welcome to the Self Operating Computer</text>
+          <button text="Start" onclick="startCapture"/>
+        </column>
+      </row>
+    </layout>
+
+    <event name="startCapture">
+      <logic>
+        <call name="startScreenCapture" method="CaptureAndProcessLogic.startCapture"/>
+      </logic>
+    </event>
+  </component>
+</components>
+
+<components>
+  <component type="CaptureAndProcessLogic" name="ScreenCaptureLogic">
+    <method name="startCapture">
+      <logic>
+        <call name="initiateCapture" method="ScreenshotService.initiateCapture"/>
+      </logic>
+    </method>
+  </component>
+</components>
+<components>
+  <component type="ScreenshotService" name="ScreenshotService">
+    <method name="initiateCapture">
+      <logic>
+        <call name="performScreenCapture" method="OperatingSystem.captureScreenWithCursor"/>
+      </logic>
+    </method>
+
+    <method name="performScreenCapture">
+      <logic>
+        <call name="analyzeImage" method="OCRService.performOCR"/>
+      </logic>
+    </method>
+  </component>
+</components>
+
+<components>
+  <component type="OCRService" name="OCRService">
+    <method name="performOCR">
+      <logic>
+        <call name="processImage" method="OCRProcessing.analyzeImage"/>
+      </logic>
+    </method>
+  </component>
+</components>
+<components>
+  <component type="OCRProcessing" name="OCRProcessing">
+    <method name="analyzeImage">
+      <logic>
+        <call name="extractText" method="OCRProcessing.extractText"/>
+      </logic>
+    </method>
+    
+    <method name="extractText">
+      <logic>
+        <call name="saveText" method="FileService.saveToFile"/>
+      </logic>
+    </method>
+  </component>
+</components>
+
+<components>
+  <component type="FileService" name="FileService">
+    <method name="saveToFile">
+      <logic>
+        <call name="storeTextInFile" method="FileService.storeTextInFile"/>
+      </logic>
+    </method>
+
+    <method name="storeTextInFile">
+      <logic>
+        <saveToFile path="ocr_output.txt" content="{extracted_text}"/>
+      </logic>
+    </method>
+  </component>
+</components>
+<components>
+  <component type="VoiceProcessing" name="VoiceProcessing">
+    <method name="recognizeSpeech">
+      <logic>
+        <call name="convertSpeechToText" method="VoiceProcessing.convertSpeechToText"/>
+      </logic>
+    </method>
+
+    <method name="convertSpeechToText">
+      <logic>
+        <call name="sendToTextProcessor" method="TextProcessing.processText"/>
+      </logic>
+    </method>
+  </component>
+</components>
+
+<components>
+  <component type="TextProcessing" name="TextProcessing">
+    <method name="processText">
+      <logic>
+        <call name="analyzeAndStoreText" method="FileService.saveToFile"/>
+      </logic>
+    </method>
+  </component>
+</components>
+<components>
+  <component type="FileService" name="FileService">
+    <method name="saveToFile">
+      <logic>
+        <call name="saveDataToDisk" method="Storage.save"/>
+      </logic>
+    </method>
+
+    <method name="saveDataToDisk">
+      <logic>
+        <storeToFile name="data.txt"/>
+      </logic>
+    </method>
+  </component>
+</components>
+
+<components>
+  <component type="Storage" name="Storage">
+    <method name="save">
+      <logic>
+        <saveToFile fileName="data.txt" data="storedData"/>
+      </logic>
+    </method>
+  </component>
+</components>
+<components>
+  <component type="UserInterface" name="UserInterface">
+    <method name="initialize">
+      <logic>
+        <setupUI style="default"/>
+      </logic>
+    </method>
+
+    <method name="setupUI">
+      <logic>
+        <setScreen screen="homeScreen"/>
+        <setTheme theme="light"/>
+      </logic>
+    </method>
+  </component>
+</components>
+<components>
+  <component type="APIInteraction" name="APIInteraction">
+    <method name="fetchData">
+      <logic>
+        <sendRequest endpoint="https://api.example.com/data" method="GET"/>
+        <handleResponse success="true" failure="false"/>
+      </logic>
+    </method>
+
+    <method name="handleResponse">
+      <logic>
+        <if condition="success">
+          <processData />
+        </if>
+        <if condition="failure">
+          <displayError message="Data fetch failed."/>
+        </if>
+      </logic>
+    </method>
+  </component>
+</components>
+<components>
+  <component type="UserInterface" name="UserInterface">
+    <method name="initializeUI">
+      <logic>
+        <setTitle title="Welcome to Self Operating Computer"/>
+        <addButton label="Start" action="startProcess"/>
+        <addTextbox label="Enter Data" id="dataInput"/>
+      </logic>
+    </method>
+
+    <method name="startProcess">
+      <logic>
+        <validateData data="dataInput"/>
+        <processData data="dataInput"/>
+      </logic>
+    </method>
+
+    <method name="validateData">
+      <logic>
+        <if condition="data == ''">
+          <showMessage message="Please enter valid data."/>
+        </if>
+        <else>
+          <continueProcess/>
+        </else>
+      </logic>
+    </method>
+  </component>
+</components>
+<components>
+  <component type="ProcessData" name="ProcessData">
+    <method name="processData">
+      <logic>
+        <checkCondition condition="dataInput == 'Special Command'">
+          <executeAction action="triggerSpecialAction"/>
+        </checkCondition>
+        <else>
+          <defaultAction action="processDefaultData"/>
+        </else>
+      </logic>
+    </method>
+
+    <method name="triggerSpecialAction">
+      <logic>
+        <showMessage message="Special command triggered!"/>
+        <executeSystemCommand command="specialAction"/>
+      </logic>
+    </method>
+
+    <method name="processDefaultData">
+      <logic>
+        <showMessage message="Processing default data..."/>
+      </logic>
+    </method>
+  </component>
+</components>
+<components>
+  <component type="DisplayOutput" name="DisplayOutput">
+    <method name="showMessage">
+      <logic>
+        <displayMessage message="Displaying output: {message}"/>
+      </logic>
+    </method>
+
+    <method name="updateScreen">
+      <logic>
+        <clearScreen/>
+        <displayMessage message="Updating screen..."/>
+      </logic>
+    </method>
+  </component>
+
+  <component type="SystemCommand" name="SystemCommand">
+    <method name="executeCommand">
+      <logic>
+        <runCommand command="{command}"/>
+      </logic>
+    </method>
+  </component>
+</components>
+<components>
+  <component type="VoiceRecognition" name="VoiceRecognition">
+    <method name="startListening">
+      <logic>
+        <listenForCommand />
+        <displayMessage message="Listening for voice command..."/>
+      </logic>
+    </method>
+
+    <method name="stopListening">
+      <logic>
+        <stopListening />
+        <displayMessage message="Stopped listening for voice command."/>
+      </logic>
+    </method>
+  </component>
+
+  <component type="FileManagement" name="FileManagement">
+    <method name="saveFile">
+      <logic>
+        <writeFile filePath="{path}" content="{content}"/>
+        <displayMessage message="File saved successfully."/>
+      </logic>
+    </method>
+
+    <method name="readFile">
+      <logic>
+        <readFile filePath="{path}"/>
+        <displayMessage message="File content loaded."/>
+      </logic>
+    </method>
+  </component>
+</components>
